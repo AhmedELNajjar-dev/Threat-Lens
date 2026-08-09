@@ -28,17 +28,11 @@
 
 import os
 import yara  # type: ignore
+import streamlit as st
 from config import YARA_RULES_PATH
 
-_RULES_CACHE = None
-
-
+@st.cache_resource
 def load_clean_rules(base_path: str = YARA_RULES_PATH):
-    global _RULES_CACHE
-
-    if _RULES_CACHE is not None:
-        return _RULES_CACHE
-
     rule_files = {}
     common_path = os.path.join(base_path, "malware", "000_common_rules.yar")
     has_common = os.path.exists(common_path)
@@ -68,6 +62,6 @@ def load_clean_rules(base_path: str = YARA_RULES_PATH):
                         else:
                             print(f"[!] Skipping bad rule: {file} -> {e}")
 
-    _RULES_CACHE = yara.compile(filepaths=rule_files)
+    compiled_rules = yara.compile(filepaths=rule_files)
     print(f"[+] YARA rules loaded: {len(rule_files)} files compiled")
-    return _RULES_CACHE
+    return compiled_rules
