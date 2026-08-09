@@ -71,7 +71,7 @@ def floss_node(state: GraphState):
         ]))
 
         categorized  = set(urls + ips + commands)
-        other_strings = list(set([l for l in lines if l not in categorized]))
+        other_strings = list(set([l for l in lines if l not in categorized and l.strip()]))
 
         floss_result = {
             "total_strings": len(lines),

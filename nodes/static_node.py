@@ -31,14 +31,20 @@ def format_static(data: dict) -> str:
         lines.append("### Detect It Easy / Tool Identifiers")
         for item in die:
             if isinstance(item, dict):
-                lines.append(f"- {item.get('name', '')} {item.get('version', '')}")
+                name = item.get('name', '')
+                version = item.get('version', '')
+                combined = f"{name} {version}".strip()
+                lines.append(f"- {combined}")
             else:
                 lines.append(f"- {item}")
         lines.append("")
 
     packers = data.get("packers", {})
     if packers:
-        lines.append(f"### Detected Packers: `{packers}`\n")
+        lines.append("### Detected Packers")
+        for tool, details in packers.items():
+            lines.append(f"- **{tool}**: `{details}`")
+        lines.append("")
 
     imports = data.get("imports", [])
     if imports:
