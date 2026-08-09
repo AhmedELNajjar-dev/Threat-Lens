@@ -922,13 +922,62 @@ if st.session_state.done and st.session_state.batch_results:
                     key=f"dl_{fname}_{selected_idx}"
                 )
             with cb:
-                st.markdown(
-                    f'<a class="open-link" '
-                    f'href="data:text/html;base64,{b64}" target="_blank">'
-                    f'↗&nbsp; OPEN FULLSCREEN</a>',
-                    unsafe_allow_html=True,
+                st.components.v1.html(
+                    f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+                        <style>
+                            body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+                            .open-btn {{
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                background: rgba(0, 243, 255, 0.08);
+                                border: 1px solid rgba(0, 243, 255, 0.35);
+                                color: #00f3ff;
+                                font-family: 'Rajdhani', sans-serif;
+                                font-size: 14px;
+                                font-weight: 600;
+                                letter-spacing: 1.5px;
+                                text-transform: uppercase;
+                                border-radius: 6px;
+                                padding: 0.6rem 1.5rem;
+                                transition: all 0.2s ease;
+                                width: 100%;
+                                box-sizing: border-box;
+                                cursor: pointer;
+                                text-decoration: none;
+                            }}
+                            .open-btn:hover {{
+                                background: #00f3ff;
+                                color: #000;
+                                box-shadow: 0 0 20px #00f3ff;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <button class="open-btn" onclick="openFullscreen()">↗&nbsp; OPEN FULLSCREEN</button>
+                        <script>
+                            function openFullscreen() {{
+                                // Decode base64 to Unicode string securely
+                                const b64 = "{b64}";
+                                const binStr = atob(b64);
+                                const bytes = new Uint8Array(binStr.length);
+                                for (let i = 0; i < binStr.length; i++) {{
+                                    bytes[i] = binStr.charCodeAt(i);
+                                }}
+                                const blob = new Blob([bytes], {{type: 'text/html;charset=utf-8'}});
+                                const url = URL.createObjectURL(blob);
+                                window.open(url, '_blank');
+                            }}
+                        </script>
+                    </body>
+                    </html>
+                    """,
+                    height=45
                 )
-
             st.markdown(
                 '<div class="report-bar">'
                 '  <div class="report-bar-left"><div class="report-dot"></div>LIVE REPORT PREVIEW</div>'
