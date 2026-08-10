@@ -1,22 +1,23 @@
 # 🛡 ThreatLens
 
-> ThreatLens — Automated Malware Intelligence Pipeline. Upload a binary, get a full threat report: SHA256, UPX packing detection, FLOSS string extraction, VirusTotal lookup, static PE analysis, dynamic sandbox results, YARA rule matching, and an AI-synthesized threat intelligence report — all in one click, powered by LangGraph + Groq.
+> ThreatLens — Automated Malware Intelligence Pipeline by **Ahmed ELNajjar**. Upload a binary, get a full threat report: SHA256, UPX packing detection, FLOSS string extraction, VirusTotal lookup, static PE analysis, dynamic sandbox results, YARA rule matching, and an AI-synthesized threat intelligence report — all in one click, powered by LangGraph and Groq AI.
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 ThreatLens/
 │
-├── app.py                         # Streamlit web interface
-├── config.py                      # API keys & shared constants
-├── state.py                       # GraphState TypedDict
-├── graph.py                       # Graph builder & compiler
+├── App.py                         # Streamlit web interface (Main App)
+├── config.py                      # Configuration & environment variable loading
+├── state.py                       # GraphState TypedDict for the pipeline
+├── graph.py                       # LangGraph sequential builder & compiler
 ├── main.py                        # CLI entry point
-├── requirements.txt
+├── requirements.txt               # Python dependencies
+├── packages.txt                   # Apt dependencies (for cloud deployment)
 │
-├── nodes/
+├── nodes/                         # LangGraph Execution Nodes
 │   ├── hash_node.py               # SHA256 hashing
 │   ├── upx_node.py                # UPX packer detection
 │   ├── floss_node.py              # FLOSS string extraction
@@ -30,42 +31,51 @@ ThreatLens/
 │   └── render_report_html_node.py # Markdown → full HTML report
 │
 ├── utils/
-│   ├── llm.py                     # Groq client + call_llm()
-│   └── yara_loader.py             # YARA rules loader
+│   ├── llm.py                     # Groq client wrapper
+│   └── yara_loader.py             # YARA rules loader with caching
 │
-├── rules/                         # YARA rule files (see setup below)
+├── rules/                         # Comprehensive YARA rule files
 │   ├── malware/
 │   ├── packers/
 │   └── webshells/
 │
 └── outputs/                       # Generated reports (auto-created)
-    ├── analysis.json
-    ├── insights_report.md
-    ├── summary_report.html
-    └── full_report.html
 ```
 
 ---
 
 ## ⚙️ Pipeline Flow
 
-```
-input ──┬──► hash ──► vt ──┬──► static ──┐
-        │                  └──► dynamic ──┤
-        ├──► upx ──► floss ──────────────┤
-        │                                ├──► agg ──► insight ──► summary_report
-        └──► yara ───────────────────────┘         └──────────► render_report_html
+ThreatLens uses a sequential LangGraph pipeline to systematically analyze malware, ensuring prerequisites (like hashing) finish before dependent nodes execute.
+
+```mermaid
+graph TD
+    input[Input File] --> hash[Hash Node]
+    
+    hash --> vt[VirusTotal Node]
+    vt --> static[Static Analysis]
+    static --> dynamic[Dynamic Analysis]
+    dynamic --> upx[UPX Packer Check]
+    upx --> floss[FLOSS Strings]
+    floss --> yara[YARA Rules]
+    
+    yara --> agg(Aggregation Node)
+    
+    agg --> insight[AI Insight Node]
+    agg --> render[Render HTML Report]
+    
+    insight --> summary[Summary Report]
 ```
 
 ---
 
 ## 🚀 Installation & Setup
 
-### 1. Clone the repo
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Ahmedsalah-28/ThreatLens.git
-cd ThreatLens
+git clone https://github.com/AhmedELNajjar-dev/Threat-Lens.git
+cd Threat-Lens
 ```
 
 ### 2. Install Python dependencies
@@ -74,38 +84,20 @@ cd ThreatLens
 pip install -r requirements.txt
 ```
 
-### 3. Install external tools
+### 3. Install external tools (Local Development)
 
-- **UPX** — download from https://upx.github.io and add to PATH
-- **FLOSS** — download `floss64.exe` from https://github.com/mandiant/flare-floss/releases and place it in the project root or add to PATH
+- **UPX** — download from https://upx.github.io and add to PATH or project root.
+- **FLOSS** — download `floss` or `floss64.exe` from https://github.com/mandiant/flare-floss/releases and place it in the project root.
 
-### 4. Download YARA Rules
+*Note: For Streamlit Cloud deployment, these are handled via `packages.txt` and linux binaries.*
 
-The pipeline uses community YARA rules. Clone them into the `rules/` folder:
+### 4. Configure Environment Variables
 
-```bash
-git clone https://github.com/Yara-Rules/rules.git rules
-```
+Create a `.env` file in the root directory (do not commit this file) and fill in your keys:
 
-> Repo: https://github.com/Yara-Rules/rules
-
-After cloning, the `rules/` folder should contain at minimum:
-
-```
-rules/
-├── malware/
-├── packers/
-└── webshells/
-```
-
-### 5. Configure API keys
-
-Edit `config.py` and fill in your keys:
-
-```python
-GROQ_API_KEY    = "your_groq_api_key"
-VT_API_KEY      = "your_virustotal_api_key"
-YARA_RULES_PATH = "rules"
+```env
+GROQ_API_KEY=your_groq_api_key_here
+VT_API_KEY=your_virustotal_api_key_here
 ```
 
 - **Groq API key** → https://console.groq.com
@@ -115,10 +107,10 @@ YARA_RULES_PATH = "rules"
 
 ## ▶️ Usage
 
-### Run the Streamlit web interface
+### Run the Streamlit web interface (Recommended)
 
 ```bash
-streamlit run app.py
+streamlit run App.py
 ```
 
 Then open your browser at `http://localhost:8501`, upload a binary, and click **Run Analysis**.
@@ -129,13 +121,13 @@ Then open your browser at `http://localhost:8501`, upload a binary, and click **
 python main.py
 ```
 
-> Edit the `file_path` inside `main.py` to point to your sample.
+> Edit the `file_path` inside `main.py` to point to your test sample.
 
 ---
 
 ## 📊 Output Reports
 
-After analysis, two HTML reports are generated inside `outputs/`:
+After analysis, reports are generated both in the UI and inside the `outputs/` folder:
 
 | File | Description |
 |---|---|
