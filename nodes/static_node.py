@@ -48,11 +48,48 @@ def format_static(data: dict) -> str:
 
     imports = data.get("imports", [])
     if imports:
+        # Dictionary of suspicious/critical Windows APIs commonly used by malware
+        suspicious_apis = {
+            "LoadLibraryA": "Dynamic DLL loading",
+            "LoadLibraryW": "Dynamic DLL loading",
+            "GetProcAddress": "Dynamic API resolution",
+            "VirtualAlloc": "Memory allocation (often for unpacking)",
+            "VirtualAllocEx": "Process injection",
+            "WriteProcessMemory": "Process injection",
+            "CreateRemoteThread": "Process injection",
+            "CreateProcessA": "Spawning processes",
+            "CreateProcessW": "Spawning processes",
+            "URLDownloadToFileA": "Downloading payloads",
+            "URLDownloadToFileW": "Downloading payloads",
+            "InternetOpenA": "Network comms / C2",
+            "InternetOpenW": "Network comms / C2",
+            "RegSetValueExA": "Registry persistence",
+            "RegCreateKeyExA": "Registry persistence",
+            "SetWindowsHookExA": "Keylogging / Hooking",
+            "SetWindowsHookExW": "Keylogging / Hooking",
+            "IsDebuggerPresent": "Anti-debugging",
+            "CheckRemoteDebuggerPresent": "Anti-debugging",
+            "Sleep": "Sandbox evasion (delay)",
+            "CryptAcquireContextA": "Cryptography / Encryption",
+            "WinExec": "Executing commands",
+            "ShellExecuteA": "Executing commands"
+        }
+
         lines.append(f"### Import Libraries ({len(imports)} libraries)")
         for imp in imports[:10]:
             lib = imp.get("library_name", "Unknown")
-            funcs = len(imp.get("imported_functions", []))
-            lines.append(f"- `{lib}` ({funcs} functions)")
+            funcs = imp.get("imported_functions", [])
+            lines.append(f"- **{lib}** ({len(funcs)} functions)")
+            
+            # Find any functions in this library that match our suspicious list
+            flagged = []
+            for f in funcs:
+                if f in suspicious_apis:
+                    flagged.append(f"  - `{f}` ⚠️ *{suspicious_apis[f]}*")
+            
+            if flagged:
+                lines.extend(flagged)
+                
         if len(imports) > 10:
             lines.append(f"- ... and {len(imports) - 10} more libraries")
         lines.append("")
