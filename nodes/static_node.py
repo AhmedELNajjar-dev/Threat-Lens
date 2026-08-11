@@ -79,16 +79,18 @@ def format_static(data: dict) -> str:
         for imp in imports[:10]:
             lib = imp.get("library_name", "Unknown")
             funcs = imp.get("imported_functions", [])
-            lines.append(f"- **{lib}** ({len(funcs)} functions)")
+            lines.append(f"- **{lib}** ({len(funcs)} functions):")
             
-            # Find any functions in this library that match our suspicious list
-            flagged = []
-            for f in funcs:
+            # Display up to 20 functions, highlight the suspicious ones
+            func_display = []
+            for f in funcs[:20]:
                 if f in suspicious_apis:
-                    flagged.append(f"  - `{f}` ⚠️ *{suspicious_apis[f]}*")
+                    func_display.append(f"`{f}` ⚠️ *( {suspicious_apis[f]} )*")
+                else:
+                    func_display.append(f"`{f}`")
             
-            if flagged:
-                lines.extend(flagged)
+            if func_display:
+                lines.append("  " + ", ".join(func_display) + (", ..." if len(funcs) > 20 else ""))
                 
         if len(imports) > 10:
             lines.append(f"- ... and {len(imports) - 10} more libraries")
@@ -115,13 +117,18 @@ def format_static(data: dict) -> str:
         }
 
         lines.append(f"### Exported Functions ({len(exports)})")
-        for exp in exports[:10]:
+        
+        # Display up to 20 exports, highlight the suspicious ones
+        exp_display = []
+        for exp in exports[:20]:
             if exp in suspicious_exports:
-                lines.append(f"- `{exp}` ⚠️ *{suspicious_exports[exp]}*")
+                exp_display.append(f"`{exp}` ⚠️ *( {suspicious_exports[exp]} )*")
             else:
-                lines.append(f"- `{exp}`")
-        if len(exports) > 10:
-            lines.append(f"- ... and {len(exports) - 10} more exported functions")
+                exp_display.append(f"`{exp}`")
+                
+        if exp_display:
+            lines.append("- " + ", ".join(exp_display) + (", ..." if len(exports) > 20 else ""))
+        
         lines.append("")
 
     return "\n".join(lines)
