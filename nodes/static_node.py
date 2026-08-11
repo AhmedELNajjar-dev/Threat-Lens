@@ -96,9 +96,30 @@ def format_static(data: dict) -> str:
 
     exports = data.get("exports", [])
     if exports:
+        suspicious_exports = {
+            "DllRegisterServer": "COM Hijacking / regsvr32 execution",
+            "DllUnregisterServer": "COM Hijacking",
+            "DllInstall": "COM Hijacking",
+            "ServiceMain": "Windows Service persistence",
+            "SvchostPushServiceGlobals": "svchost.exe persistence",
+            "MiniDump": "Memory dumping (LSASS credential theft)",
+            "Install": "Potential malware installer",
+            "Uninstall": "Potential malware uninstaller",
+            "Start": "Generic start execution",
+            "Run": "Generic run execution",
+            "Execute": "Generic payload execution",
+            "Payload": "Explicit payload export",
+            "Inject": "Code injection",
+            "Loader": "Malware loader",
+            "Hook": "Keylogging / API hooking"
+        }
+
         lines.append(f"### Exported Functions ({len(exports)})")
         for exp in exports[:10]:
-            lines.append(f"- `{exp}`")
+            if exp in suspicious_exports:
+                lines.append(f"- `{exp}` ⚠️ *{suspicious_exports[exp]}*")
+            else:
+                lines.append(f"- `{exp}`")
         if len(exports) > 10:
             lines.append(f"- ... and {len(exports) - 10} more exported functions")
         lines.append("")
