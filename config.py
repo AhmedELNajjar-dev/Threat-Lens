@@ -23,5 +23,5 @@ def get_secret(key: str, default_value: str = "") -> str:
 
 GROQ_API_KEY = get_secret("GROQ_API_KEY", "")
 VT_API_KEY   = get_secret("VT_API_KEY", "")
-GROQ_MODEL   = get_secret("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL   = get_secret("GROQ_MODEL", "llama3-70b-8192")
 YARA_RULES_PATH = os.path.join(BASE_DIR, "rules")

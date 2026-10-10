@@ -49,13 +49,17 @@ Describe in detail what the malware does based on the evidence:
 - Persistence / evasion mechanisms
 - Any anti-analysis behavior
 
-### 4. Indicators of Compromise (IOCs)
-List all IOCs found in the data:
+### 4. Indicators of Compromise (IOCs) & Suspicious Artifacts
+List all standard IOCs found in the data:
 - Hashes (MD5, SHA1, SHA256)
 - IPs / Domains / URLs
 - File names / paths
 - Mutex / Registry keys (if any)
 - Ports
+
+Additionally, deeply analyze the raw imports/exports and strings data provided above:
+- **Critical Imports/Exports**: Extract the top 5-10 most suspicious or dangerous Windows APIs the malware uses (e.g., VirtualAllocEx, LoadLibrary, GetProcAddress, CreateRemoteThread, etc.) and explicitly explain what malicious capability they enable (e.g., Process Injection, Keylogging, Dynamic Loading).
+- **Suspicious Strings**: Identify any highly suspicious strings (like registry keys, evasion commands, PDB paths, ransomware notes, or networking artifacts) and explain why they are dangerous.
 
 ### 5. Key Findings per Analysis Module
 For each module, state the most important finding in 1-2 sentences:
