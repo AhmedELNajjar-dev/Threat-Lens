@@ -23,5 +23,5 @@ def get_secret(key: str, default_value: str = "") -> str:
 
 GROQ_API_KEY = get_secret("GROQ_API_KEY", "")
 VT_API_KEY   = get_secret("VT_API_KEY", "")
-GROQ_MODEL   = get_secret("GROQ_MODEL", "llama3-70b-8192")
+GROQ_MODEL   = get_secret("GROQ_MODEL", "openai/gpt-oss-120b")
 YARA_RULES_PATH = os.path.join(BASE_DIR, "rules")
